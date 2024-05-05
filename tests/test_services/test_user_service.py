@@ -5,6 +5,7 @@ from app.dependencies import get_settings
 from app.models.user_model import User, UserRole
 from app.services.user_service import UserService
 from app.utils.nickname_gen import generate_nickname
+from app.utils.security import generate_verification_token
 
 pytestmark = pytest.mark.asyncio
 
@@ -148,13 +149,18 @@ async def test_reset_password(db_session, user):
     reset_success = await UserService.reset_password(db_session, user.id, new_password)
     assert reset_success is True
 
-# Test verifying a user's email
+# Test verifying a user's email with valid and invalid tokens
 async def test_verify_email_with_token(db_session, user):
-    token = "valid_token_example"  # This should be set in your user setup if it depends on a real token
-    user.verification_token = token  # Simulating setting the token in the database
+    token = generate_verification_token()
+    user.verification_token = token
     await db_session.commit()
     result = await UserService.verify_email_with_token(db_session, user.id, token)
-    assert result is True
+    assert result is True, "User's email should be verified with a valid token"
+    invalid_token = "invalid_token_example"
+    result = await UserService.verify_email_with_token(db_session, user.id, invalid_token)
+    assert result is False, "User's email should not be verified with an invalid token"
+    refreshed_user = await UserService.get_by_id(db_session, user.id)
+    assert refreshed_user.verification_token is None, "The token should be cleared after verification"
 
 # Test unlocking a user's account
 async def test_unlock_user_account(db_session, locked_user):

@@ -64,13 +64,12 @@ class UserService:
                 new_nickname = generate_nickname()
             new_user.nickname = new_nickname
             logger.info(f"User Role: {new_user.role}")
+            # Determine the user's role
             user_count = await cls.count(session)
-            new_user.role = UserRole.ADMIN if user_count == 0 else UserRole.ANONYMOUS            
-            if new_user.role == UserRole.ADMIN:
-                new_user.email_verified = True
+            new_user.role = UserRole.ADMIN if user_count == 0 else UserRole.ANONYMOUS
 
-            else:
-                new_user.verification_token = generate_verification_token()
+            # Generate verification token for all roles
+            new_user.verification_token = generate_verification_token()
 
             session.add(new_user)
             await session.commit()
