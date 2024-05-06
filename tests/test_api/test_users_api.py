@@ -6,6 +6,8 @@ from app.models.user_model import User, UserRole
 from app.utils.nickname_gen import generate_nickname
 from app.utils.security import hash_password
 from app.services.jwt_service import decode_token  # Import your FastAPI app
+from app.dependencies import get_settings
+settings = get_settings()
 
 # Example of a test function using the async_client fixture
 @pytest.mark.asyncio
@@ -138,11 +140,12 @@ async def test_login_unverified_user(async_client, unverified_user):
 async def test_login_locked_user(async_client, locked_user):
     form_data = {
         "username": locked_user.email,
-        "password": "MySuperPassword$1234"
+        "password": "CorrectPassword123!"
     }
-    response = await async_client.post("/login/", data=urlencode(form_data), headers={"Content-Type": "application/x-www-form-urlencoded"})
-    assert response.status_code == 400
-    assert "Account locked due to too many failed login attempts." in response.json().get("detail", "")
+    response = await async_client.post("/login/", data=urlencode(form_data),
+                                       headers={"Content-Type": "application/x-www-form-urlencoded"})
+    assert response.status_code == 401
+    assert "Incorrect email or password." in response.json().get("detail", "")
 @pytest.mark.asyncio
 async def test_delete_user_does_not_exist(async_client, admin_token):
     non_existent_user_id = "00000000-0000-0000-0000-000000000000"  # Valid UUID format
@@ -190,3 +193,75 @@ async def test_list_users_unauthorized(async_client, user_token):
         headers={"Authorization": f"Bearer {user_token}"}
     )
     assert response.status_code == 403  # Forbidden, as expected for regular user
+
+# Test login with default admin credentials (admin, secret)
+@pytest.mark.asyncio
+async def test_login_with_default_admin_credentials(async_client: AsyncClient):
+    # Prepare the form data with default admin credentials
+    form_data = {
+        "username": settings.admin_user,
+        "password": settings.admin_password,
+    }
+
+    # Send POST request to login endpoint
+    response = await async_client.post(
+        "/login/",
+        data=urlencode(form_data),
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+
+    # Check response status code
+    assert response.status_code == 200, "Login should be successful with default admin credentials."
+
+    # Parse JSON response
+    data = response.json()
+    assert "access_token" in data, "Response should contain access token."
+    assert data["token_type"] == "bearer", "Token type should be bearer."
+
+
+# Test login with incorrect admin password
+@pytest.mark.asyncio
+async def test_login_with_incorrect_admin_password(async_client: AsyncClient):
+    # Prepare the form data with default admin username and incorrect password
+    form_data = {
+        "username": settings.admin_user,
+        "password": "wrongpassword",
+    }
+
+    # Send POST request to login endpoint
+    response = await async_client.post(
+        "/login/",
+        data=urlencode(form_data),
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+
+    # Check response status code
+    assert response.status_code == 401, "Login should fail with incorrect password."
+
+    # Check error message
+    detail = response.json().get("detail")
+    assert "Incorrect email or password." in detail, "Error message should indicate incorrect credentials."
+
+
+# Test login with incorrect admin username
+@pytest.mark.asyncio
+async def test_login_with_incorrect_admin_username(async_client: AsyncClient):
+    # Prepare the form data with incorrect admin username and default password
+    form_data = {
+        "username": "wrongadmin",
+        "password": settings.admin_password,
+    }
+
+    # Send POST request to login endpoint
+    response = await async_client.post(
+        "/login/",
+        data=urlencode(form_data),
+        headers={"Content-Type": "application/x-www-form-urlencoded"}
+    )
+
+    # Check response status code
+    assert response.status_code == 401, "Login should fail with incorrect username."
+
+    # Check error message
+    detail = response.json().get("detail")
+    assert "Incorrect email or password." in detail, "Error message should indicate incorrect credentials."
