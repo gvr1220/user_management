@@ -168,3 +168,40 @@ async def test_unlock_user_account(db_session, locked_user):
     assert unlocked, "The account should be unlocked"
     refreshed_user = await UserService.get_by_id(db_session, locked_user.id)
     assert not refreshed_user.is_locked, "The user should no longer be locked"
+
+# Test creating a user with duplicate emails, both exact and case-insensitive
+async def test_create_user_with_duplicate_emails(db_session, email_service):
+    original_user_data = {
+        "nickname": generate_nickname(),
+        "email": "User@Example.com",  # This email will be used in the next tests
+        "password": "ValidPassword123!",
+        "role": UserRole.ADMIN.name
+    }
+    original_user = await UserService.create(db_session, original_user_data, email_service)
+
+    # Ensure the original user is created successfully
+    assert original_user is not None
+
+    # Test creating another user with the exact same email
+    exact_duplicate_user_data = {
+        "nickname": generate_nickname(),
+        "email": original_user.email,  # Using the same exact email
+        "password": "AnotherValidPassword123!",
+        "role": UserRole.ANONYMOUS.name
+    }
+    exact_duplicate_user = await UserService.create(db_session, exact_duplicate_user_data, email_service)
+
+    # Ensure creation of the duplicate user with exact email fails
+    assert exact_duplicate_user is None
+
+    # Test creating another user with the same email but in different case
+    case_insensitive_duplicate_user_data = {
+        "nickname": generate_nickname(),
+        "email": original_user.email.lower(),  # Convert original email to lowercase
+        "password": "AnotherValidPassword123!",
+        "role": UserRole.ANONYMOUS.name
+    }
+    case_insensitive_duplicate_user = await UserService.create(db_session, case_insensitive_duplicate_user_data, email_service)
+
+    # Ensure creation of the duplicate user with case-insensitive email fails
+    assert case_insensitive_duplicate_user is None
