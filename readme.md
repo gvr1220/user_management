@@ -1,53 +1,50 @@
+# User Management System
+
+Welcome to my User Management System repository! This project was an essential part of my coursework on software development for IS 219. It focuses on project management, quality assurance, and deployment. Below, you'll find information on QA issues, testing processes, the feature implementation, and DockerHub deployment.
+
+## QA Issues and Testing
+
+Throughout the project, I addressed several quality assurance issues:
+
+- [Update production.yml and Dockerfile](https://github.com/gvr1220/user_management/issues/1)
+- [Verification email contains incorrect link structure](https://github.com/gvr1220/user_management/issues/3)
+-  [First user (Admin) receives invalid verification token link](https://github.com/gvr1220/user_management/issues/5)
+- [Case-insensitive duplicate email handling in registration](https://github.com/gvr1220/user_management/issues/7)
+- [OAuth2 authentication error](https://github.com/gvr1220/user_management/issues/9)
+- [User profile not reflecting changes in is_professional field](https://github.com/gvr1220/user_management/issues/11)
+- [Role change unauthorized during User Update](https://github.com/gvr1220/user_management/issues/13)
+- [Email verification changes Admin role to Authenticated](https://github.com/gvr1220/user_management/issues/15)
+
+The testing process played a critical role in ensuring the project's success. Here are the links to the new tests I created:
+
+- [test_create_user_with_duplicate_emails](https://github.com/gvr1220/user_management/commit/b47fbed840f48a15cc8a8e84326469f84337b872#diff-e3f3da0661632e0add5f28cb40266e4bfbd6e0c1a23cdb5f5e8813af69cf1d5c)
+- [test_login_with_default_admin_credentials](https://github.com/gvr1220/user_management/commit/7f0f337d1f4efd64ffb6055521c58ebe760a6fe0#diff-df7dfcf3734befe5032b230c4b76211088909172814f84139ffd7acc55265962)
+- [test_login_with_incorrect_admin_password](https://github.com/gvr1220/user_management/commit/7f0f337d1f4efd64ffb6055521c58ebe760a6fe0)
+- [test_login_with_incorrect_admin_username](https://github.com/gvr1220/user_management/commit/7f0f337d1f4efd64ffb6055521c58ebe760a6fe0)
+- [test_send_user_email_invalid_type](https://github.com/gvr1220/user_management/commit/2fde48cea3189ed55c7c554c7d97941425c6b321#diff-f6c4849c9543cda32313695d741656026ce97f6b0139270a273f247961220435)
+- [test_send_verification_email](https://github.com/gvr1220/user_management/commit/2fde48cea3189ed55c7c554c7d97941425c6b321#diff-f6c4849c9543cda32313695d741656026ce97f6b0139270a273f247961220435)
+- [test_template_manager](https://github.com/gvr1220/user_management/commit/2fde48cea3189ed55c7c554c7d97941425c6b321#diff-f6c4849c9543cda32313695d741656026ce97f6b0139270a273f247961220435)
+- [test_smtp_client_errors](https://github.com/gvr1220/user_management/commit/2fde48cea3189ed55c7c554c7d97941425c6b321#diff-f6c4849c9543cda32313695d741656026ce97f6b0139270a273f247961220435)
+- [test_search_users_single_field](https://github.com/gvr1220/user_management/commit/2fde48cea3189ed55c7c554c7d97941425c6b321#diff-dbd4401236d3bb4a816be4b002737bea8a40549c90a9a4747d4b62418eb663ed)
+- [test_search_users_multiple_fields_error](https://github.com/gvr1220/user_management/commit/2fde48cea3189ed55c7c554c7d97941425c6b321#diff-dbd4401236d3bb4a816be4b002737bea8a40549c90a9a4747d4b62418eb663ed)
+- [test_search_users_no results](https://github.com/gvr1220/user_management/commit/2fde48cea3189ed55c7c554c7d97941425c6b321#diff-dbd4401236d3bb4a816be4b002737bea8a40549c90a9a4747d4b62418eb663ed)
+- [test_search_users_invalid_input_format](https://github.com/gvr1220/user_management/commit/2fde48cea3189ed55c7c554c7d97941425c6b321#diff-dbd4401236d3bb4a816be4b002737bea8a40549c90a9a4747d4b62418eb663ed)
+- [test_search_and_filter_users](https://github.com/gvr1220/user_management/commit/2fde48cea3189ed55c7c554c7d97941425c6b321#diff-e3f3da0661632e0add5f28cb40266e4bfbd6e0c1a23cdb5f5e8813af69cf1d5c)
+
+## Feature Implementation
+
+The new feature I implemented is the search and filter functionality, which allows users to efficiently search for other users based on criteria such as username, email, role, professional status, account locked status, and registration dates.
+
+You can find the feature branch [here](https://github.com/gvr1220/user_management/tree/feature/search-filter).
+
+The feature is accessible via the `/users/search` endpoint, where users can specify search criteria through query parameters. The function validates input and executes queries to filter users accordingly, with results being paginated and returned as a response.
+
+![Screenshot of the feature](https://github.com/gvr1220/user_management/assets/110260661/2ca38bcc-88db-45d7-a354-aa924b9e7cb7)
 
 
-# The User Management System Final Project: Your Epic Coding Adventure Awaits! 🎉✨🔥
+## DockerHub Deployment
 
-## Introduction: Buckle Up for the Ride of a Lifetime 🚀🎬
+Deploying the project to DockerHub was a smooth process, thanks to the knowledge I gained in the course about Docker containerization and deployment. You can access the DockerHub repository [here](https://hub.docker.com/repository/docker/gv225/user_management/general).
 
-Welcome to the User Management System project - an epic open-source adventure crafted by the legendary Professor Keith Williams for his rockstar students at NJIT! 🏫👨‍🏫⭐ This project is your gateway to coding glory, providing a bulletproof foundation for a user management system that will blow your mind! 🤯 You'll bridge the gap between the realms of seasoned software pros and aspiring student developers like yourselves. 
+![Alt text](https://private-user-images.githubusercontent.com/110260661/328701415-fc4b91fa-4f5e-41f2-b9f8-a7690cb05e2d.png?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3MTUxMjIyMTEsIm5iZiI6MTcxNTEyMTkxMSwicGF0aCI6Ii8xMTAyNjA2NjEvMzI4NzAxNDE1LWZjNGI5MWZhLTRmNWUtNDFmMi1iOWY4LWE3NjkwY2IwNWUyZC5wbmc_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjQwNTA3JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI0MDUwN1QyMjQ1MTFaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT00ZTIzMWNmYzM2NWU4NmQ4ZGI4YmY4ODdhN2M0NDk1ZmU1ZjhlMWQwMjQ3ZGU1N2EzZWUwM2U3N2RiMmE5NWJmJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCZhY3Rvcl9pZD0wJmtleV9pZD0wJnJlcG9faWQ9MCJ9.xegHiz8dd0ixlFxGIKrjaeYbD6MIHMxMDbYOSU89k3Q)
 
-### [Instructor Video - Project Overview and Tips](https://youtu.be/gairLNAp6mA) 🎥
-
-- [Introduction to the system features and overview of the project - please read](system_documentation.md) 📚
-- [Project Setup Instructions](setup.md) ⚒️
-- [Features to Select From](features.md) 🛠️
-- [About the Project](about.md)🔥🌟
-
-## Goals and Objectives: Unlock Your Coding Superpowers 🎯🏆🌟
-
-Get ready to ascend to new heights with this legendary project:
-
-1. **Practical Experience**: Dive headfirst into a real-world codebase, collaborate with your teammates, and contribute to an open-source project like a seasoned pro! 💻👩‍💻🔥
-2. **Quality Assurance**: Develop ninja-level skills in identifying and resolving bugs, ensuring your code quality and reliability are out of this world. 🐞🔍⚡
-3. **Test Coverage**: Write additional tests to cover edge cases, error scenarios, and important functionalities - leave no stone unturned and no bug left behind! ✅🧪🕵️‍♂️
-4. **Feature Implementation**: Implement a brand new, mind-blowing feature and make your epic mark on the project, following best practices for coding, testing, and documentation like a true artisan. ✨🚀🎆
-5. **Collaboration**: Foster teamwork and collaboration through code reviews, issue tracking, and adhering to contribution guidelines - teamwork makes the dream work, and together you'll conquer worlds! 🤝💪🌍
-6. **Industry Readiness**: Prepare for the software industry by working on a project that simulates real-world development scenarios - level up your skills to super hero status  and become an unstoppable coding force! 🔝🚀🏆⚡
-
-## Submission and Grading: Your Chance to Shine 📝✏️📈
-
-1. **Reflection Document**: Submit a 1-2 page Word document reflecting on your learnings throughout the course and your experience working on this epic project. Include links to the closed issues for the **5 QA issues, 10 NEW tests, and 1 Feature** you'll be graded on. Make sure your project successfully deploys to DockerHub and include a link to your Docker repository in the document - let your work speak for itself! 📄🔗💥
-
-2. **Commit History**: Show off your consistent hard work through your commit history like a true coding warrior. **Projects with less than 10 commits will get an automatic 0 - ouch!** 😬⚠️ A significant part of your project's evaluation will be based on your use of issues, commits, and following a professional development process like a boss - prove your coding prowess! 💻🔄🔥
-
-3. **Deployability**: Broken projects that don't deploy to Dockerhub or pass all the automated tests on GitHub actions will face point deductions - nobody likes a buggy app! 🐞☠️ Show the world your flawless coding skills!
-
-## Managing the Project Workload: Stay Focused, Stay Victorious ⏱️🧠⚡
-
-This project requires effective time management and a well-planned strategy, but fear not - you've got this! Follow these steps to ensure a successful (and sane!) project outcome:
-
-1. **Select a Feature**: [Choose a feature](features.md) from the provided list of additional improvements that sparks your interest and aligns with your goals like a laser beam. ✨⭐🎯 This is your chance to shine!
-
-2. **Quality Assurance (QA)**: Thoroughly test the system's major functionalities related to your chosen feature and identify at least 5 issues or bugs like a true detective. Create GitHub issues for each identified problem, providing detailed descriptions and steps to reproduce - the more detail, the merrier! 🔍🐞🕵️‍♀️ Leave no stone unturned!
-
-3. **Test Coverage Improvement**: Review the existing test suite and identify gaps in test coverage like a pro. Create 10 additional tests to cover edge cases, error scenarios, and important functionalities related to your chosen feature. Focus on areas such as user registration, login, authorization, and database interactions. Simulate the setup of the system as the admin user, then creating users, and updating user accounts - leave no stone unturned, no bug left behind! ✅🧪🔍🔬 Become the master of testing!
-
-4. **New Feature Implementation**: Implement your chosen feature, following the project's coding practices and architecture like a coding ninja. Write appropriate tests to ensure your new feature is functional and reliable like a rock. Document the new feature, including its usage, configuration, and any necessary migrations - future you will thank you profusely! 🚀✨📝👩‍💻⚡ Make your mark on this project!
-
-5. **Maintain a Working Main Branch**: Throughout the project, ensure you always have a working main branch deploying to Docker like a well-oiled machine. This will prevent any last-minute headaches and ensure a smooth submission process - no tears allowed, only triumphs! 😊🚢⚓ Stay focused, stay victorious!
-
-Remember, it's more important to make something work reliably and be reasonably complete than to implement an overly complex feature. Focus on creating a feature that you can build upon or demonstrate in an interview setting - show off your skills like a rockstar! 💪🚀🎓
-
-Don't forget to always have a working main branch deploying to Docker at all times. If you always have a working main branch, you will never be in jeopardy of receiving a very disappointing grade :-). Keep that main branch shining bright!
-
-Let's embark on this epic coding adventure together and conquer the world of software engineering! You've got this, coding rockstars! 🚀🌟✨
