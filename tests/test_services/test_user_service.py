@@ -1,11 +1,16 @@
 from builtins import range
 import pytest
 from sqlalchemy import select
+from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from uuid import uuid4
+from datetime import datetime, timedelta
 from app.dependencies import get_settings
 from app.models.user_model import User, UserRole
 from app.services.user_service import UserService
 from app.utils.nickname_gen import generate_nickname
-from app.utils.security import generate_verification_token
+from app.utils.security import generate_verification_token, hash_password
+from app.dependencies import get_db
 
 pytestmark = pytest.mark.asyncio
 
@@ -205,3 +210,93 @@ async def test_create_user_with_duplicate_emails(db_session, email_service):
 
     # Ensure creation of the duplicate user with case-insensitive email fails
     assert case_insensitive_duplicate_user is None
+
+# Test search and filtering functionality for users based on different criteria
+async def test_search_and_filter_users(db_session: AsyncSession):
+    test_users = [
+        User(
+            nickname="testuser1",
+            email="testuser1@example.com",
+            hashed_password=hash_password("Password123!"),
+            role=UserRole.AUTHENTICATED,
+            is_professional=False,
+            is_locked=False,
+            created_at=datetime.now() - timedelta(days=10)
+        ),
+        User(
+            nickname="testuser2",
+            email="testuser2@example.com",
+            hashed_password=hash_password("Password123!"),
+            role=UserRole.MANAGER,
+            is_professional=True,
+            is_locked=True,
+            created_at=datetime.now() - timedelta(days=5)
+        ),
+        User(
+            nickname="testuser3",
+            email="testuser3@example.com",
+            hashed_password=hash_password("Password123!"),
+            role=UserRole.ADMIN,
+            is_professional=True,
+            is_locked=False,
+            created_at=datetime.now()
+        ),
+    ]
+
+    # Add the test users to the database session
+    db_session.add_all(test_users)
+    await db_session.commit()
+
+    # Test search by username (case-insensitive)
+    users, total_users = await UserService.search_and_filter_users(
+        db_session,
+        username="TestUser1"
+    )
+    assert total_users == 1
+    assert users[0].nickname == "testuser1"
+
+    # Test search by email (case-insensitive)
+    users, total_users = await UserService.search_and_filter_users(
+        db_session,
+        email="testuser2@example.com"
+    )
+    assert total_users == 1
+    assert users[0].email == "testuser2@example.com"
+
+    # Test search by role
+    users, total_users = await UserService.search_and_filter_users(
+        db_session,
+        role=UserRole.MANAGER
+    )
+    assert total_users == 1
+    assert users[0].role == UserRole.MANAGER
+
+    # Test search by professional status
+    users, total_users = await UserService.search_and_filter_users(
+        db_session,
+        is_professional=True
+    )
+    assert total_users == 2  # testuser2 and testuser3 are professionals
+
+    # Test search by locked account status
+    users, total_users = await UserService.search_and_filter_users(
+        db_session,
+        is_locked=True
+    )
+    assert total_users == 1
+    assert users[0].is_locked is True
+
+    # Test search by registration date range
+    start_date = datetime.now() - timedelta(days=7)
+    end_date = datetime.now()
+    users, total_users = await UserService.search_and_filter_users(
+        db_session,
+        registration_start=start_date,
+        registration_end=end_date
+    )
+    assert total_users == 2  # testuser2 and testuser3 were created within the date range
+
+    # Clean up the test users from the database
+    for user in test_users:
+        await db_session.delete(user)
+    await db_session.commit()

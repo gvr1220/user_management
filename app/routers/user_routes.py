@@ -19,12 +19,15 @@ Key Highlights:
 """
 
 from builtins import dict, int, len, str
-from datetime import timedelta
+from datetime import timedelta,datetime
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException, Response, status, Request
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Response, status, Request, Query
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 from app.dependencies import get_current_user, get_db, get_email_service, require_role
+from app.models.user_model import User, UserRole
 from app.schemas.pagination_schema import EnhancedPagination
 from app.schemas.token_schema import TokenResponse
 from app.schemas.user_schemas import LoginRequest, UserBase, UserCreate, UserListResponse, UserResponse, UserUpdate
@@ -36,6 +39,77 @@ from app.services.email_service import EmailService
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 settings = get_settings()
+
+@router.get("/users/search", response_model=UserListResponse, tags=["User Management Requires (Admin or Manager Roles)"])
+async def search_users(
+    request: Request,
+    username: Optional[str] = Query(None, description="Search by username"),
+    email: Optional[str] = Query(None, description="Search by email"),
+    role: Optional[str] = Query(None, description="Search by role"),
+    is_professional: Optional[bool] = Query(None, description="Filter by professional status"),
+    is_locked: Optional[bool] = Query(None, description="Filter by locked account status"),
+    registration_start: Optional[datetime] = Query(None, description="Filter by registration start date(YYYY-MM-DD)"),
+    registration_end: Optional[datetime] = Query(None, description="Filter by registration end date(YYYY-MM-DD)"),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, ge=1),
+    db: AsyncSession = Depends(get_db),
+    current_user: dict = Depends(require_role(["ADMIN"]))
+):
+    # Validate the role input
+    if role is not None:
+        role = role.upper()
+        valid_roles = [role.name for role in UserRole]
+        if role not in valid_roles:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid role '{role}'. Valid roles are: {', '.join(valid_roles)}")
+
+    # Check if more than one search field is provided
+    search_criteria = [
+        username,
+        email,
+        role,
+        is_professional,
+        is_locked,
+        registration_start,
+        registration_end
+    ]
+    non_null_criteria = [criteria for criteria in search_criteria if criteria is not None]
+
+    if len(non_null_criteria) > 1:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Please provide input in only one search field.")
+
+    # Use the UserService to search and filter users based on the provided criteria
+    users, total_users = await UserService.search_and_filter_users(
+        db,
+        username=username,
+        email=email,
+        role=role,
+        is_professional=is_professional,
+        is_locked=is_locked,
+        registration_start=registration_start,
+        registration_end=registration_end,
+        skip=skip,
+        limit=limit
+    )
+
+    # Check if no users were found
+    if total_users == 0:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    # Convert the users to UserResponse objects
+    user_responses = [UserResponse.model_validate(user) for user in users]
+
+    # Generate pagination links
+    pagination_links = generate_pagination_links(request, skip, limit, total_users)
+
+    # Return the list of users along with pagination details
+    return UserListResponse(
+        items=user_responses,
+        total=total_users,
+        page=skip // limit + 1,
+        size=len(user_responses),
+        links=pagination_links
+    )
+
 @router.get("/users/{user_id}", response_model=UserResponse, name="get_user", tags=["User Management Requires (Admin or Manager Roles)"])
 async def get_user(user_id: UUID, request: Request, db: AsyncSession = Depends(get_db), token: str = Depends(oauth2_scheme), current_user: dict = Depends(require_role(["ADMIN", "MANAGER"]))):
     """

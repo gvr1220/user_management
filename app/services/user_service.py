@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import secrets
 from typing import Optional, Dict, List
 from pydantic import ValidationError
-from sqlalchemy import func, null, update, select
+from sqlalchemy import func, null, update, select, and_
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies import get_email_service, get_settings
@@ -206,3 +206,68 @@ class UserService:
             await session.commit()
             return True
         return False
+
+    @classmethod
+    async def search_and_filter_users(
+            cls,
+            session: AsyncSession,
+            username: Optional[str] = None,
+            email: Optional[str] = None,
+            role: Optional[str] = None,
+            is_professional: Optional[bool] = None,
+            is_locked: Optional[bool] = None,
+            registration_start: Optional[datetime] = None,
+            registration_end: Optional[datetime] = None,
+            skip: int = 0,
+            limit: int = 10
+    ):
+
+        query = select(User)
+
+        # Filter by username (case-insensitive)
+        if username:
+            query = query.filter(User.nickname.ilike(f"%{username}%"))
+
+        # Filter by email (case-insensitive)
+        if email:
+            query = query.filter(User.email.ilike(f"%{email}%"))
+
+        # Filter by role
+        if role:
+            query = query.filter(User.role == role)
+
+        # Filter by professional status
+        if is_professional is not None:
+            query = query.filter(User.is_professional == is_professional)
+
+        # Filter by locked account status
+        if is_locked is not None:
+            query = query.filter(User.is_locked == is_locked)
+
+        # Filter by registration date range
+        if registration_start:
+            query = query.filter(User.created_at >= registration_start)
+        if registration_end:
+            query = query.filter(User.created_at <= registration_end)
+
+        # Execute the query and paginate the results
+        query = query.offset(skip).limit(limit)
+        result = await session.execute(query)
+
+        # Retrieve the results and the total count
+        users = result.scalars().all()
+        total_count_query = select(func.count(User.id)).filter(
+            and_(
+                User.nickname.ilike(f"%{username}%") if username else True,
+                User.email.ilike(f"%{email}%") if email else True,
+                User.role == role if role else True,
+                User.is_professional == is_professional if is_professional is not None else True,
+                User.is_locked == is_locked if is_locked is not None else True,
+                User.created_at >= registration_start if registration_start else True,
+                User.created_at <= registration_end if registration_end else True
+            )
+        )
+        total_count_result = await session.execute(total_count_query)
+        total_users = total_count_result.scalar()
+
+        return users, total_users
